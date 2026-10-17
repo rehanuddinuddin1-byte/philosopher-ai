@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Philosopher AI — The Intelligence That Questions Everything</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">🏛️</div>
+                    <div class="logo-text">
+                        <h1>Philosopher</h1>
+                        <p class="tagline">The Intelligence That Questions Everything</p>
+                    </div>
+                </div>
+                <button class="reset-btn" id="resetBtn" title="New Conversation">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                    <span>New Dialogue</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <main class="chat-area" id="chatArea">
+            <!-- Welcome Message -->
+            <div class="welcome-message" id="welcomeMessage">
+                <div class="welcome-icon">🏛️</div>
+                <h2>Welcome, seeker of wisdom.</h2>
+                <p>I am Philosopher — a mind shaped by centuries of contemplation. I have walked the gardens of Athens, debated in the salons of Enlightenment Europe, and sat in silence with the great Eastern sages.</p>
+                <p>I do not merely answer questions. I investigate them.</p>
+                <div class="prompt-suggestions">
+                    <button class="suggestion" data-prompt="What is the meaning of life?">What is the meaning of life?</button>
+                    <button class="suggestion" data-prompt="Is free will an illusion?">Is free will an illusion?</button>
+                    <button class="suggestion" data-prompt="What makes an action truly moral?">What makes an action truly moral?</button>
+                    <button class="suggestion" data-prompt="Can we ever truly know reality?">Can we ever truly know reality?</button>
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="messages-container" id="messagesContainer"></div>
+        </main>
+
+        <!-- Input Area -->
+        <footer class="input-area">
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="Ask the philosopher anything..."
+                        rows="1"
+                        maxlength="4000"
+                    ></textarea>
+                    <button class="send-btn" id="sendBtn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="input-hint">Press Enter to send · Shift+Enter for new line</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
