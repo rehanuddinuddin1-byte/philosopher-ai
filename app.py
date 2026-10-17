@@ -3,7 +3,11 @@ import uuid
 from flask import Flask, render_template, request, jsonify, session
 from google import genai
 import markdown
+from dotenv import load_dotenv
 from personas import PHILOSOPHERS, build_system_prompt
+
+# Automatically load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'philosopher-ai-secret-key-change-in-production')
