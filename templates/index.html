@@ -3,26 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Philosopher AI — The Intelligence That Questions Everything</title>
+    <title>Philosopher AI & The Arena — Dialogue of the Ages</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
+        <!-- Top Navigation & Control Bar -->
         <header class="app-header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <div class="logo-icon">🏛️</div>
-                    <div class="logo-text">
-                        <h1>Philosopher</h1>
-                        <p class="tagline">The Intelligence That Questions Everything</p>
-                    </div>
+            <div class="header-left">
+                <div class="logo-icon">🏛️</div>
+                <div class="logo-text">
+                    <h1>Philosopher AI</h1>
+                    <span class="tagline">The Living Minds of History</span>
                 </div>
-                <button class="reset-btn" id="resetBtn" title="New Conversation">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            </div>
+
+            <!-- Mode Switcher: Dialogue vs Arena -->
+            <div class="mode-tabs">
+                <button class="tab-btn active" id="tabDialogue" data-mode="dialogue">
+                    <span>💬 Dialogue</span>
+                </button>
+                <button class="tab-btn" id="tabArena" data-mode="arena">
+                    <span>⚔️ The Arena</span>
+                </button>
+            </div>
+
+            <!-- Dialogue Options -->
+            <div class="header-controls">
+                <div class="control-group" id="cadenceGroup">
+                    <label for="cadenceSelect">Cadence:</label>
+                    <select id="cadenceSelect" class="styled-select" title="Choose historical vs modern speech">
+                        <option value="ancient">Classical / Epoch Cadence</option>
+                        <option value="modern">Modern Conversational</option>
+                    </select>
+                </div>
+
+                <button class="reset-btn" id="resetBtn" title="Reset Current Dialogue">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                         <path d="M3 3v5h5"/>
                     </svg>
@@ -31,46 +51,127 @@
             </div>
         </header>
 
-        <!-- Chat Area -->
-        <main class="chat-area" id="chatArea">
-            <!-- Welcome Message -->
-            <div class="welcome-message" id="welcomeMessage">
-                <div class="welcome-icon">🏛️</div>
-                <h2>Welcome, seeker of wisdom.</h2>
-                <p>I am Philosopher — a mind shaped by centuries of contemplation. I have walked the gardens of Athens, debated in the salons of Enlightenment Europe, and sat in silence with the great Eastern sages.</p>
-                <p>I do not merely answer questions. I investigate them.</p>
-                <div class="prompt-suggestions">
-                    <button class="suggestion" data-prompt="What is the meaning of life?">What is the meaning of life?</button>
-                    <button class="suggestion" data-prompt="Is free will an illusion?">Is free will an illusion?</button>
-                    <button class="suggestion" data-prompt="What makes an action truly moral?">What makes an action truly moral?</button>
-                    <button class="suggestion" data-prompt="Can we ever truly know reality?">Can we ever truly know reality?</button>
+        <!-- DIALOGUE VIEW -->
+        <div class="view-panel active-view" id="dialogueView">
+            <!-- Philosopher Selection Bar -->
+            <div class="philosopher-selector-strip">
+                <div class="selector-label">Choose Your Interlocutor:</div>
+                <div class="philosopher-chips" id="philosopherChips">
+                    {% for key, phil in philosophers.items() %}
+                    <button class="phil-chip {% if loop.first %}selected{% endif %}" data-key="{{ key }}" data-name="{{ phil.name }}" data-avatar="{{ phil.avatar }}">
+                        <span class="chip-avatar">{{ phil.avatar }}</span>
+                        <div class="chip-info">
+                            <span class="chip-name">{{ phil.name }}</span>
+                            <span class="chip-title">{{ phil.title }}</span>
+                        </div>
+                    </button>
+                    {% endfor %}
                 </div>
             </div>
 
-            <!-- Messages Container -->
-            <div class="messages-container" id="messagesContainer"></div>
-        </main>
+            <!-- Chat Message Area -->
+            <main class="chat-area" id="chatArea">
+                <div class="welcome-message" id="welcomeMessage">
+                    <div class="welcome-avatar" id="welcomeAvatar">🏛️</div>
+                    <h2 id="welcomeName">Socrates</h2>
+                    <p class="welcome-era" id="welcomeEra">Classical Greece (c. 470–399 BCE)</p>
+                    <p class="welcome-desc" id="welcomeDesc">
+                        I am here not to bestow easy answers, but to interrogate the illusions we hold as truth. How does the noise of your modern century illuminate or obscure the good life?
+                    </p>
+                    
+                    <div class="prompt-suggestions" id="promptSuggestions">
+                        <button class="suggestion" data-prompt="What is justice in an age governed by algorithms and surveillance?">What is justice in the age of algorithms?</button>
+                        <button class="suggestion" data-prompt="Why has modern hyper-connectivity produced an epidemic of isolation?">Why has hyper-connectivity deepened loneliness?</button>
+                        <button class="suggestion" data-prompt="Is democracy failing, or is humanity unprepared for its demands?">Is democracy failing modern humanity?</button>
+                        <button class="suggestion" data-prompt="What does it mean to live a virtuous life today?">What is a virtuous life today?</button>
+                    </div>
+                </div>
 
-        <!-- Input Area -->
-        <footer class="input-area">
-            <div class="input-container">
+                <div class="messages-container" id="messagesContainer"></div>
+            </main>
+
+            <!-- Chat Input Area -->
+            <footer class="input-area">
                 <div class="input-wrapper">
                     <textarea 
                         id="messageInput" 
-                        placeholder="Ask the philosopher anything..."
+                        placeholder="Inquire with the philosopher (Shift+Enter for new line)..."
                         rows="1"
                         maxlength="4000"
                     ></textarea>
-                    <button class="send-btn" id="sendBtn" disabled>
+                    <button class="send-btn" id="sendBtn" disabled title="Send Question">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="22" y1="2" x2="11" y2="13"/>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"/>
                         </svg>
                     </button>
                 </div>
-                <p class="input-hint">Press Enter to send · Shift+Enter for new line</p>
+                <div class="input-footnote">
+                    Aware of contemporary global developments • Speaking from lived philosophical consciousness
+                </div>
+            </footer>
+        </div>
+
+        <!-- ARENA VIEW (Debate Engine) -->
+        <div class="view-panel" id="arenaView">
+            <div class="arena-setup-banner">
+                <div class="arena-header-intro">
+                    <h2>⚔️ The Arena of Living Ideas</h2>
+                    <p>Stage a debate between history's greatest philosophical minds on any contemporary or timeless question.</p>
+                </div>
+
+                <div class="arena-matchup-config">
+                    <div class="matchup-box">
+                        <label>Champion 1</label>
+                        <select id="arenaPhil1" class="styled-select arena-select">
+                            {% for key, phil in philosophers.items() %}
+                            <option value="{{ key }}" {% if key == 'socrates' %}selected{% endif %}>{{ phil.avatar }} {{ phil.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="matchup-vs">VS</div>
+
+                    <div class="matchup-box">
+                        <label>Champion 2</label>
+                        <select id="arenaPhil2" class="styled-select arena-select">
+                            {% for key, phil in philosophers.items() %}
+                            <option value="{{ key }}" {% if key == 'nietzsche' %}selected{% endif %}>{{ phil.avatar }} {{ phil.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="matchup-box rounds-box">
+                        <label>Debate Clashes</label>
+                        <select id="arenaRounds" class="styled-select arena-select">
+                            <option value="1">1 Clash (Opening Theses)</option>
+                            <option value="2" selected>2 Clashes (Rebuttal & Defense)</option>
+                            <option value="3">3 Clashes (Exhaustive Cross-Examination)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="arena-topic-input">
+                    <input type="text" id="arenaTopic" placeholder="Enter a dilemma or question (e.g. 'Can artificial intelligence possess a moral soul?', 'Is suffering necessary for human greatness?')" />
+                    <button class="arena-start-btn" id="startArenaBtn">Commence Debate</button>
+                </div>
+
+                <div class="arena-topic-presets">
+                    <span>Sample Clashes:</span>
+                    <button class="topic-preset" data-topic="Can artificial intelligence ever possess a genuine moral consciousness?">Can AI possess a moral consciousness?</button>
+                    <button class="topic-preset" data-topic="Is suffering necessary for greatness, or is peace the highest aim?">Suffering vs Peace: Which defines the good life?</button>
+                    <button class="topic-preset" data-topic="Has modern technological comfort weakened the human spirit?">Has modern comfort weakened the human soul?</button>
+                </div>
             </div>
-        </footer>
+
+            <!-- Arena Stream Container -->
+            <div class="arena-stream" id="arenaStream">
+                <div class="arena-empty-state">
+                    <div class="empty-icon">⚖️</div>
+                    <p>Select your disputants and announce the question to witness the dialectic clash.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>

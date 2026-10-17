@@ -1,180 +1,344 @@
-// Philosopher AI — Frontend Application
+// Philosopher AI — Multi-Mind & Arena Debate Engine
 (function() {
     'use strict';
 
+    // State
+    let currentPhilosopher = 'socrates';
+    let currentCadence = 'ancient';
+    let isProcessing = false;
+    let philosophersData = {};
+
     // DOM Elements
+    const tabDialogue = document.getElementById('tabDialogue');
+    const tabArena = document.getElementById('tabArena');
+    const dialogueView = document.getElementById('dialogueView');
+    const arenaView = document.getElementById('arenaView');
+    const cadenceSelect = document.getElementById('cadenceSelect');
+    const cadenceGroup = document.getElementById('cadenceGroup');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // Dialogue Elements
+    const philChips = document.querySelectorAll('.phil-chip');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const welcomeAvatar = document.getElementById('welcomeAvatar');
+    const welcomeName = document.getElementById('welcomeName');
+    const welcomeEra = document.getElementById('welcomeEra');
+    const welcomeDesc = document.getElementById('welcomeDesc');
     const chatArea = document.getElementById('chatArea');
     const messagesContainer = document.getElementById('messagesContainer');
-    const welcomeMessage = document.getElementById('welcomeMessage');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
-    const resetBtn = document.getElementById('resetBtn');
     const suggestions = document.querySelectorAll('.suggestion');
 
-    let isProcessing = false;
+    // Arena Elements
+    const arenaPhil1 = document.getElementById('arenaPhil1');
+    const arenaPhil2 = document.getElementById('arenaPhil2');
+    const arenaRounds = document.getElementById('arenaRounds');
+    const arenaTopic = document.getElementById('arenaTopic');
+    const startArenaBtn = document.getElementById('startArenaBtn');
+    const arenaStream = document.getElementById('arenaStream');
+    const topicPresets = document.querySelectorAll('.topic-preset');
 
-    // Auto-resize textarea
+    // Fetch Philosopher Meta
+    async function loadPhilosopherData() {
+        try {
+            const res = await fetch('/api/philosophers');
+            philosophersData = await res.json();
+        } catch (e) {
+            console.error('Error fetching philosophers metadata:', e);
+        }
+    }
+    loadPhilosopherData();
+
+    // Mode Switching
+    tabDialogue.addEventListener('click', () => {
+        tabDialogue.classList.add('active');
+        tabArena.classList.remove('active');
+        dialogueView.classList.add('active-view');
+        arenaView.classList.remove('active-view');
+        cadenceGroup.style.display = 'flex';
+        resetBtn.style.display = 'flex';
+    });
+
+    tabArena.addEventListener('click', () => {
+        tabArena.classList.add('active');
+        tabDialogue.classList.remove('active');
+        arenaView.classList.add('active-view');
+        dialogueView.classList.remove('active-view');
+        cadenceGroup.style.display = 'flex';
+        resetBtn.style.display = 'none';
+    });
+
+    // Cadence Change
+    cadenceSelect.addEventListener('change', (e) => {
+        currentCadence = e.target.value;
+    });
+
+    // Philosopher Selection
+    philChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            philChips.forEach(c => c.classList.remove('selected'));
+            chip.classList.add('selected');
+            currentPhilosopher = chip.dataset.key;
+            updateWelcomeCard(currentPhilosopher);
+        });
+    });
+
+    function updateWelcomeCard(key) {
+        if (!philosophersData[key]) return;
+        const p = philosophersData[key];
+        welcomeAvatar.textContent = p.avatar;
+        welcomeName.textContent = p.name;
+        welcomeEra.textContent = p.era;
+        welcomeDesc.textContent = `${p.core_philosophy} Examining timeless truths and contemporary global affairs.`;
+    }
+
+    // Auto-resize input
     function autoResize() {
         messageInput.style.height = 'auto';
         messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
-    }
-
-    // Enable/disable send button
-    function updateSendButton() {
         sendBtn.disabled = !messageInput.value.trim() || isProcessing;
     }
+    messageInput.addEventListener('input', autoResize);
 
-    // Create message bubble
-    function createMessage(content, isUser) {
+    // Dialogue Messaging
+    function createMessage(content, isUser, philName, avatar) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'user-message' : 'philosopher-message'}`;
-        
-        const avatar = document.createElement('div');
-        avatar.className = 'message-avatar';
-        avatar.textContent = isUser ? '👤' : '🏛️';
-        
-        const bubble = document.createElement('div');
-        bubble.className = 'message-bubble';
-        
-        if (isUser) {
-            bubble.textContent = content;
-        } else {
-            bubble.innerHTML = content;
-        }
-        
+
         const wrapper = document.createElement('div');
         wrapper.className = 'message-wrapper';
-        wrapper.appendChild(avatar);
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        avatarDiv.textContent = isUser ? '👤' : (avatar || '🏛️');
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+
+        if (!isUser) {
+            const author = document.createElement('div');
+            author.className = 'bubble-author';
+            author.textContent = philName || 'Philosopher';
+            bubble.appendChild(author);
+        }
+
+        const bodyDiv = document.createElement('div');
+        bodyDiv.className = 'bubble-body';
+        if (isUser) {
+            bodyDiv.textContent = content;
+        } else {
+            bodyDiv.innerHTML = content;
+        }
+        bubble.appendChild(bodyDiv);
+
+        wrapper.appendChild(avatarDiv);
         wrapper.appendChild(bubble);
-        
         messageDiv.appendChild(wrapper);
         return messageDiv;
     }
 
-    // Create typing indicator
-    function createTypingIndicator() {
+    function createTypingIndicator(philName, avatar) {
         const div = document.createElement('div');
         div.className = 'message philosopher-message typing-indicator-msg';
         div.id = 'typingIndicator';
         div.innerHTML = `
             <div class="message-wrapper">
-                <div class="message-avatar">🏛️</div>
+                <div class="message-avatar">${avatar || '🏛️'}</div>
                 <div class="message-bubble typing-bubble">
                     <div class="typing-indicator">
                         <span></span><span></span><span></span>
                     </div>
-                    <span class="typing-text">The philosopher contemplates...</span>
+                    <span class="typing-text">${philName || 'The philosopher'} contemplates the cosmos...</span>
                 </div>
             </div>
         `;
         return div;
     }
 
-    // Scroll to bottom
     function scrollToBottom() {
         chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    // Send message
-    async function sendMessage(text) {
+    async function sendDialogue(text) {
         const message = text || messageInput.value.trim();
         if (!message || isProcessing) return;
 
         isProcessing = true;
         messageInput.value = '';
         autoResize();
-        updateSendButton();
 
-        // Hide welcome
-        if (welcomeMessage) {
-            welcomeMessage.style.display = 'none';
-        }
+        if (welcomeMessage) welcomeMessage.style.display = 'none';
 
-        // Add user message
         const userMsg = createMessage(message, true);
         messagesContainer.appendChild(userMsg);
         scrollToBottom();
 
-        // Add typing indicator
-        const typingIndicator = createTypingIndicator();
-        messagesContainer.appendChild(typingIndicator);
+        const pData = philosophersData[currentPhilosopher] || { name: 'Philosopher', avatar: '🏛️' };
+        const typing = createTypingIndicator(pData.name, pData.avatar);
+        messagesContainer.appendChild(typing);
         scrollToBottom();
 
         try {
-            const response = await fetch('/chat', {
+            const res = await fetch('/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message })
+                body: JSON.stringify({
+                    message: message,
+                    philosopher: currentPhilosopher,
+                    style: currentCadence
+                })
             });
 
-            const data = await response.json();
+            typing.remove();
+            const data = await res.json();
 
-            // Remove typing indicator
-            typingIndicator.remove();
-
-            if (response.ok) {
-                const aiMsg = createMessage(data.response, false);
+            if (res.ok) {
+                const aiMsg = createMessage(data.response, false, data.philosopher, data.avatar);
                 messagesContainer.appendChild(aiMsg);
             } else {
-                const errorMsg = createMessage(
-                    '<em>The philosopher pauses, lost in thought... Please try again.</em>', 
-                    false
+                const err = createMessage(
+                    `<em>${data.error || 'The philosopher pauses in deep meditation.'}</em>`,
+                    false,
+                    pData.name,
+                    pData.avatar
                 );
-                messagesContainer.appendChild(errorMsg);
+                messagesContainer.appendChild(err);
             }
-        } catch (error) {
-            typingIndicator.remove();
-            const errorMsg = createMessage(
-                '<em>A moment of silence falls. The philosopher will return shortly...</em>', 
-                false
+        } catch (e) {
+            typing.remove();
+            const err = createMessage(
+                `<em>A moment of silence falls across the chamber. Please try once more.</em>`,
+                false,
+                pData.name,
+                pData.avatar
             );
-            messagesContainer.appendChild(errorMsg);
+            messagesContainer.appendChild(err);
         }
 
         isProcessing = false;
-        updateSendButton();
+        autoResize();
         scrollToBottom();
         messageInput.focus();
     }
 
-    // Reset conversation
-    async function resetConversation() {
+    // Arena Debate Runner
+    async function runArenaDebate() {
+        const topic = arenaTopic.value.trim();
+        const p1 = arenaPhil1.value;
+        const p2 = arenaPhil2.value;
+        const rounds = arenaRounds.value;
+
+        if (!topic) {
+            arenaTopic.focus();
+            return;
+        }
+        if (p1 === p2) {
+            alert('Please select two distinct philosophical champions to clash in the Arena.');
+            return;
+        }
+
+        startArenaBtn.disabled = true;
+        startArenaBtn.textContent = 'Debate in Progress...';
+        arenaStream.innerHTML = `
+            <div class="arena-loading">
+                <div class="arena-clash-loader">⚔️</div>
+                <h3>The Disputants Have Taken the Forum</h3>
+                <p>Generating clash over: <em>"${topic}"</em>...</p>
+            </div>
+        `;
+
+        try {
+            const res = await fetch('/arena/debate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    topic: topic,
+                    philosopher1: p1,
+                    philosopher2: p2,
+                    rounds: rounds,
+                    style: currentCadence
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                arenaStream.innerHTML = `<div class="arena-error">Error: ${data.error || 'The disputation was halted.'}</div>`;
+                startArenaBtn.disabled = false;
+                startArenaBtn.textContent = 'Commence Debate';
+                return;
+            }
+
+            // Render debate clashes
+            arenaStream.innerHTML = `
+                <div class="debate-meta-header">
+                    <span class="topic-tag">Arena Topic</span>
+                    <h2>"${data.topic}"</h2>
+                </div>
+                <div class="debate-timeline" id="debateTimeline"></div>
+            `;
+
+            const timeline = document.getElementById('debateTimeline');
+            data.debate.forEach((clash, idx) => {
+                const clashCard = document.createElement('div');
+                clashCard.className = `clash-card clash-${clash.key}`;
+                clashCard.innerHTML = `
+                    <div class="clash-badge">Round ${clash.round}</div>
+                    <div class="clash-header">
+                        <span class="clash-avatar">${clash.avatar}</span>
+                        <div class="clash-names">
+                            <h4>${clash.speaker}</h4>
+                        </div>
+                    </div>
+                    <div class="clash-text">${clash.text}</div>
+                `;
+                timeline.appendChild(clashCard);
+            });
+
+        } catch (e) {
+            arenaStream.innerHTML = `<div class="arena-error">Encountered an interruption during the debate: ${e.message}</div>`;
+        }
+
+        startArenaBtn.disabled = false;
+        startArenaBtn.textContent = 'Commence Debate';
+    }
+
+    // Reset Dialogue
+    resetBtn.addEventListener('click', async () => {
         try {
             await fetch('/reset', { method: 'POST' });
             messagesContainer.innerHTML = '';
-            if (welcomeMessage) {
-                welcomeMessage.style.display = '';
-            }
+            if (welcomeMessage) welcomeMessage.style.display = '';
             messageInput.value = '';
             autoResize();
             messageInput.focus();
-        } catch (error) {
-            console.error('Reset failed:', error);
+        } catch (e) {
+            console.error('Reset error:', e);
         }
-    }
-
-    // Event Listeners
-    messageInput.addEventListener('input', () => {
-        autoResize();
-        updateSendButton();
     });
 
+    // Key listeners
     messageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            sendDialogue();
         }
     });
 
-    sendBtn.addEventListener('click', () => sendMessage());
-    resetBtn.addEventListener('click', resetConversation);
+    sendBtn.addEventListener('click', () => sendDialogue());
 
-    suggestions.forEach(btn => {
-        btn.addEventListener('click', () => {
-            sendMessage(btn.dataset.prompt);
+    suggestions.forEach(s => {
+        s.addEventListener('click', () => sendDialogue(s.dataset.prompt));
+    });
+
+    topicPresets.forEach(preset => {
+        preset.addEventListener('click', () => {
+            arenaTopic.value = preset.dataset.topic;
+            runArenaDebate();
         });
     });
 
-    // Focus input on load
-    messageInput.focus();
+    startArenaBtn.addEventListener('click', runArenaDebate);
+
 })();
